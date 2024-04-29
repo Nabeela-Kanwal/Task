@@ -12,7 +12,6 @@
   <div class="container">
     <h1 class="text-center">Task Management</h1>
 
-    
     <div class="d-flex justify-content-end mb-3">
       <a href="{{ route('Task.create') }}" class="btn btn-success">Add Task</a>
     </div>
@@ -39,10 +38,7 @@
           <td>{{ $task->due_date }}</td>
           <td>{{ $task->completed ? 'Yes' : 'No' }}</td>
           <td>
-            
             <button type="button" class="btn btn-primary edit-task" data-task-id="{{ $task->id }}">Edit</button>
-
-            
             <form id="deleteForm{{ $task->id }}" action="{{ route('destroy', $task->id) }}" method="POST" style="display: inline;">
               @csrf
               @method('DELETE')
@@ -72,6 +68,27 @@
                 <label for="editTitle" class="form-label">Title</label>
                 <input type="text" class="form-control" id="editTitle" name="title">
               </div>
+              
+              <div class="mb-3">
+                <label for="editDescription" class="form-label">Description</label>
+                <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
+              </div>
+              
+              <div class="mb-3">
+                <label for="editPriority" class="form-label">Priority</label>
+                <input type="number" class="form-control" id="editPriority" name="priority" min="1">
+              </div>
+
+              <div class="mb-3">
+                <label for="editDueDate" class="form-label">Due Date</label>
+                <input type="date" class="form-control" id="editDueDate" name="due_date">
+              </div>
+
+              <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="editCompleted" name="completed">
+                <label class="form-check-label" for="editCompleted">Completed</label>
+              </div>
+
               <button type="submit" class="btn btn-primary">Save changes</button>
             </form>
           </div>
@@ -80,19 +97,31 @@
     </div>
   </div>
 
-  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     $(document).ready(function() {
-
       $('.edit-task').click(function() {
         var taskId = $(this).data('task-id');
-        $('#editTaskId').val(taskId); 
+        $('#editTaskId').val(taskId);
+
+        // Retrieve task data and populate the form fields
+        var taskTitle = $('#taskTable').find('tr[data-task-id="' + taskId + '"] td:eq(1)').text();
+        var taskDescription = $('#taskTable').find('tr[data-task-id="' + taskId + '"] td:eq(2)').text();
+        var taskPriority = $('#taskTable').find('tr[data-task-id="' + taskId + '"] td:eq(3)').text();
+        var taskDueDate = $('#taskTable').find('tr[data-task-id="' + taskId + '"] td:eq(4)').text();
+        var taskCompleted = $('#taskTable').find('tr[data-task-id="' + taskId + '"] td:eq(5)').text().trim() === 'Yes' ? true : false;
+
+        $('#editTitle').val(taskTitle);
+        $('#editDescription').val(taskDescription);
+        $('#editPriority').val(taskPriority);
+        $('#editDueDate').val(taskDueDate);
+        $('#editCompleted').prop('checked', taskCompleted);
+
         $('#editTaskModal').modal('show');
       });
 
-      
+      // Edit task form submission
       $('#editTaskForm').submit(function(e) {
         e.preventDefault();
         var form = $(this);
@@ -109,10 +138,11 @@
           },
           success: function(response) {
             alert(response.message);
-            $('#editTaskModal').modal('hide'); 
+            $('#editTaskModal').modal('hide');
+            location.reload(); // Reload the page to reflect changes
           },
           error: function(xhr, status, error) {
-            alert('An error occurred while updating the task.');
+            alert('An error occurred while updating the task. Please check your form data and try again.');
           }
         });
       });
